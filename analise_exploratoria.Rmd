@@ -1,0 +1,67 @@
+
+Pacotes usados
+```{r}
+library(tidyverse)
+```
+
+Carregando dados
+```{r}
+
+df <- read.csv("Censo_1872_dados_tidy.csv")
+df
+
+```
+
+
+População de escravos por província
+```{r}
+df1 <- df%>%
+  subset(Sexo_Condicao == "Total Escravizados")%>%
+  group_by(Província)%>%
+  select(Faixa.Etária_1.mês:Faixa.Etária_Maiores.de.100)%>%
+  summarise(across(Faixa.Etária_1.mês:Faixa.Etária_Maiores.de.100, sum))
+df1
+
+```
+
+
+Organizar faixas etárias de colunas para linhas e remover indivíduos com < de 1 ano 
+```{r}
+df1_escr_idade <- df1%>%
+  summarize(
+    across(Faixa.Etária_1.mês:Faixa.Etária_Maiores.de.100, sum)
+    )%>%
+  pivot_longer(
+    Faixa.Etária_1.mês:Faixa.Etária_Maiores.de.100, values_to = "Almas"
+    )%>%
+  rowid_to_column(
+    "ID"
+    )%>%
+  filter(
+    ID >= 12
+    )
+
+df1_escr_idade
+```
+
+plotar piramide etária
+```{r}
+df1_escr_idade%>% 
+ggplot(aes(x = reorder(name, ID), y = Almas))+
+  geom_col(fill = "#99B7D6")+
+  geom_label(aes(label = Almas), fill  = NA, label.size = 0, size = 2.5)+
+  coord_flip()+
+  labs(title = "Total de Escravos por Idade - Censo 1872")+
+  theme_minimal()+
+  theme(plot.title = element_text(size = 12))
+
+  ggsave("piramide1.png", width = 7, height = 7)
+```
+
+
+
+
+```{r}
+
+```
+
